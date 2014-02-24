@@ -7,7 +7,7 @@ Websockets implementation for Spark Core, ported from Arduino WebSocketClient
 
 How to use :
 ==============
-
+```
 include websocketclient.h
 
 WebSocketClient client;
@@ -29,3 +29,4 @@ void loop() {
   client.monitor();
 }
 
+```
