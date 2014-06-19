@@ -1,0 +1,7 @@
+{
+  "name": "Spark-Websockets",
+  "author": "Ivan Davletshin <ekbduffy@gmail.com>",
+  "license": "MIT",
+  "version": "0.0.2",
+  "description": "Spark Library to work with websockets"
+}
