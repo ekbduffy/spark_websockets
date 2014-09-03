@@ -8,7 +8,7 @@ Websockets implementation for Spark Core, ported from Arduino WebSocketClient
 How to use :
 ==============
 ```
-include websocketclient.h
+include Spark-Websockets/Spark-Websockets.h
 
 WebSocketClient client;
 char server[] = "echo.websocket.org";
