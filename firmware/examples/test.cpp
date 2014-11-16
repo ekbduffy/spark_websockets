@@ -1,20 +1,28 @@
 #include "Spark-Websockets/Spark-Websockets.h"
 
+
 WebSocketClient client;
-char server[] = "echo.websocket.org";
+
 
 void onMessage(WebSocketClient client, char* message) {
   Serial.print("Received: ");
   Serial.println(message);
 }
 
-void setup() {
-  Serial.begin(9600);
-  client.connect(server);
-  client.onMessage(onMessage);
-  client.send("Hello World!");
+
+/* This function is called once at start up ----------------------------------*/
+void setup()
+{
+	Serial.begin(9600);
+	while(!Serial.available()); // Wait here until the user presses ENTER in the Serial Terminal
+	
+	client.onMessage(onMessage);
+	client.connect("echo.websocket.org");
 }
 
-void loop() {
+void loop()
+{
   client.monitor();
+	delay(3000);
+	client.send("Hello World!");
 }
