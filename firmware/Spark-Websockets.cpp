@@ -69,7 +69,7 @@
 #include "spark_wiring_usbserial.h"
 #include "spark_wiring_string.h"
 
-#include "websocketclient.h"
+#include "Spark-Websockets.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdlib.h>
