@@ -1,9 +1,9 @@
 /*
- WebsocketClient, a websocket client for Spark Core based on Arduino websocket client
+ WebsocketClient, a websocket client for Arduino
  Copyright 2011 Kevin Rohling
  Copyright 2012 Ian Moore
- Copyright 2014 Ivan Davletshin
-
+ http://kevinrohling.com
+ http://www.incamoon.com
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,8 @@
 
 #include <stdlib.h>
 #include "spark_wiring_tcpclient.h"
+#include "spark_wiring_string.h"
+//#include "Arduino.h"
 
 class WebSocketClient {
 public:
@@ -43,6 +45,7 @@ public:
   typedef void (*OnClose)(WebSocketClient client, int code, char* message);
   typedef void (*OnError)(WebSocketClient client, char* message);
   void connect(const char hostname[], int port = 80, const char protocol[] = NULL, const char path[] = "/");
+  void connect(const byte host[], int port = 80, const char protocol[] = NULL, const char path[] = "/");
   bool connected();
   void disconnect();
   void monitor();
@@ -52,11 +55,22 @@ public:
   void onError(OnError function);
   bool send(char* message);
 private:
+String WebSocketClientStringTable = {
+			"GET / HTTP/1.1\x0d\x0a"//, //"GET {0} HTTP/1.1",
+			"Upgrade: websocket\x0d\x0a"//,
+			"Connection: Upgrade\x0d\x0a"//,
+			"Host: {0}:{1}\x0d\x0a"//,//"Host: {0}",
+			"Origin: SparkWebSocketClient\x0d\x0a"//,
+			"Sec-WebSocket-Key:  1VTFj/CydlBCZDucDqw8eA==\x0d\x0a"//,
+			"Sec-WebSocket-Version: 13\x0d\x0a"//,
+//			"HTTP/1.1 101\x0d\x0a"
+			"\x0d\x0a"};
+
   const char* _hostname;
+  const byte* _host;
   int _port;
   const char* _path;
   const char* _protocol;
-  char _key[45];
   bool _canConnect;
   bool _reconnecting;
   unsigned long _retryTimeout;
@@ -75,6 +89,7 @@ private:
   void generateHash(char* buffer, size_t bufferlen);
   size_t base64Encode(byte* src, size_t srclength, char* target, size_t targetsize);
   byte nextByte();
+  
   
 };
 
