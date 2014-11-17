@@ -161,25 +161,25 @@ byte WebSocketClient::nextByte() {
 
 void WebSocketClient::monitor () {
 
-  if(!_canConnect) {
-    return;
-  }
+	if(!_canConnect) {
+	return;
+	}
 
-  if(_reconnecting) {
-    return;
-  }
+	if(_reconnecting) {
+	return;
+	}
 
-  if(!connected() && millis() > _retryTimeout) {
-    _retryTimeout = millis() + RETRY_TIMEOUT;
-    _reconnecting = true;
-    reconnect();
-    _reconnecting = false;
-    return;
-  }
+	if(!connected() && millis() > _retryTimeout) {
+	_retryTimeout = millis() + RETRY_TIMEOUT;
+	_reconnecting = true;
+	reconnect();
+	_reconnecting = false;
+	return;
+	}
 
 	if (_client.available() > 2) {
-    byte hdr = nextByte();
-    bool fin = hdr & 0x80;
+	byte hdr = nextByte();
+	bool fin = hdr & 0x80;
 
 #ifdef TRACE
  Serial.print("fin = ");
@@ -221,9 +221,9 @@ Serial.println(len);
 
     if(mask) {
 
-#ifdef DEBUGGING
-Serial.println("Masking not yet supported (RFC 6455 section 5.3)");
-#endif
+		#ifdef DEBUGGING
+		Serial.println("Masking not yet supported (RFC 6455 section 5.3)");
+		#endif
 
       if(_onError != NULL) {
         _onError(*this, "Masking not supported");
@@ -256,18 +256,50 @@ Serial.println("Masking not yet supported (RFC 6455 section 5.3)");
       }
       return;
     }
+#ifdef TRACE
+Serial.print("packetlen = ");
+Serial.println(_packetLength);
+#endif
+
 
     if(_packet == NULL) {
       _packet = (char*) malloc(len + 1);
+
+#ifdef TRACE
+Serial.print("len5 = ");
+Serial.println(len);
+#endif
+/*
       for(int i = 0; i < len; i++) {
         _packet[i] = nextByte();
       }
+*/
+		uint8_t temppack[len];
+		_client.read(temppack, len);
+
+      for(int i = 0; i < len; i++) {
+        _packet[i] = (char)temppack[i];
+      }
+
+	
+#ifdef TRACE
+Serial.print("packetlen3 = ");
+Serial.println(_packetLength);
+#endif
+
       _packet[len] = 0x0;
     } else {
       int copyLen = _packetLength;
       _packetLength += len;
       char *temp = _packet;
       _packet = (char*) malloc(_packetLength + 1);
+
+#ifdef TRACE
+Serial.print("packetlen4 = ");
+Serial.println(_packetLength);
+#endif
+
+
       for(int i = 0; i < _packetLength; i++) {
         if(i < copyLen) {
           _packet[i] = temp[i];
@@ -278,6 +310,10 @@ Serial.println("Masking not yet supported (RFC 6455 section 5.3)");
       _packet[_packetLength] = 0x0;
       free(temp);
     }
+#ifdef TRACE
+Serial.print("packetlen2 = ");
+Serial.println(_packetLength);
+#endif
 
     if(opCode == 0 && _opCode > 0) {
       opCode = _opCode;
