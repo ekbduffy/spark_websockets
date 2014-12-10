@@ -69,7 +69,7 @@
 #include "spark_wiring_usbserial.h"
 #include "spark_wiring_string.h"
 
-#include "Spark-Websockets.h"
+#include "websocketclient.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -81,7 +81,7 @@
 #define DEBUGGING
 #define TRACE
 
-//char *stringVar = "{0}";
+#define STEPBYSTEP
 
 
 
@@ -147,17 +147,44 @@ void WebSocketClient::disconnect() {
 }
 
 byte WebSocketClient::nextByte() {
-  while(_client.available() == 0);
-  byte b = _client.read();
+	#ifdef TRACE
+		
+	Serial.print("_offset = ");
+	Serial.println(_offset);
+	Serial.print("_total = ");
+	Serial.println(_total);
+	#endif
 
-#ifdef DEBUGGING
-  if(b < 0) {
-    Serial.println("Internal Error in Ethernet Client Library (-1 returned where >= 0 expected)");
-  }
-#endif
-
-  return b;
+	return (_offset < _total) ? _buffer[_offset++] : -1;
 }
+
+int WebSocketClient::nextBytes(uint8_t *buffer, size_t size) {
+
+
+	int read = -1;
+	if (_offset <= _total)
+	{
+		read = (size > (size_t) (_total-_offset)) ? _total-_offset : size;
+		#ifdef TRACE
+		Serial.print("Nextbytes reading, total: ");
+		Serial.println(_total);
+		Serial.print("offset: ");
+		Serial.println(_offset);
+		Serial.print("read size: ");
+		Serial.println(size);
+		Serial.print("real read size: ");
+		Serial.println(read);
+		#endif
+		#ifdef STEPBYSTEP
+			delay(300);
+		#endif
+		memcpy(buffer, &_buffer[_offset], read);
+		_offset += read;
+	}
+	return read;
+}
+
+
 
 void WebSocketClient::monitor () {
 
@@ -170,143 +197,199 @@ void WebSocketClient::monitor () {
 	}
 
 	if(!connected() && millis() > _retryTimeout) {
-	_retryTimeout = millis() + RETRY_TIMEOUT;
-	_reconnecting = true;
-	reconnect();
-	_reconnecting = false;
-	return;
+		_retryTimeout = millis() + RETRY_TIMEOUT;
+		_reconnecting = true;
+		reconnect();
+		_reconnecting = false;
+		return;
 	}
 
 	if (_client.available() > 2) {
-	byte hdr = nextByte();
-	bool fin = hdr & 0x80;
-
-#ifdef TRACE
- Serial.print("fin = ");
- Serial.println(fin);
-#endif
-
-    int opCode = hdr & 0x0F;
-
-#ifdef TRACE
-Serial.print("op = ");
-Serial.println(opCode);
-#endif
-
-    hdr = nextByte();
-    bool mask = hdr & 0x80;
-    int len = hdr & 0x7F;
-    if(len == 126) {
-      len = nextByte();
-      len <<= 8;
-      len += nextByte();
-    } else if (len == 127) {
-      len = nextByte();
-      for(int i = 0; i < 7; i++) { // NOTE: This may not be correct.  RFC 6455 defines network byte order(??). (section 5.2)
-        len <<= 8;
-        len += nextByte();
-      }
-    }
-
-#ifdef TRACE
-Serial.print("len = ");
-Serial.println(len);
-#endif
-
-    if(mask) { // skipping 4 bytes for now.
-      for(int i = 0; i < 4; i++) {
-        nextByte();
-      }
-    }
-
-    if(mask) {
-
-		#ifdef DEBUGGING
-		Serial.println("Masking not yet supported (RFC 6455 section 5.3)");
+		//__disable_irq();
+		_total =  _client.available();
+		_buffer = (uint8_t*) calloc (_total,sizeof(uint8_t));
+		_total = _client.read(_buffer, _total);
+		_offset = 0;
+		//__enable_irq();
+		#ifdef STEPBYSTEP
+			delay(300);
 		#endif
 
-      if(_onError != NULL) {
-        _onError(*this, "Masking not supported");
-      }
-      free(_packet);
-      return;
-    }
+		#ifdef TRACE
+		Serial.print("message = ");
+		Serial.println((char*)_buffer);
+		#endif
 
-    if(!fin) {
-      if(_packet == NULL) {
-        _packet = (char*) malloc(len);
-        for(int i = 0; i < len; i++) {
-          _packet[i] = nextByte();
-        }
-        _packetLength = len;
-        _opCode = opCode;
-      } else {
-        int copyLen = _packetLength;
-        _packetLength += len;
-        char *temp = _packet;
-        _packet = (char*)malloc(_packetLength);
-        for(int i = 0; i < copyLen; i++) {
-          if(i < copyLen) {
-            _packet[i] = temp[i];
-          } else {
-            _packet[i] = nextByte();
-          }
-        }
-        free(temp);
-      }
-      return;
-    }
-#ifdef TRACE
-Serial.print("packetlen = ");
-Serial.println(_packetLength);
-#endif
 
+		byte hdr = nextByte();
+		#ifdef STEPBYSTEP
+			delay(300);
+		#endif
+		bool fin = hdr & 0x80;
+		#ifdef TRACE
+		 Serial.print("fin = ");
+		 Serial.println(fin);
+		#endif
+
+		int opCode = hdr & 0x0F;
+
+		#ifdef TRACE
+		Serial.print("op = ");
+		Serial.println(opCode);
+		#endif
+
+		hdr = nextByte();
+		bool mask = hdr & 0x80;
+		int len = hdr & 0x7F;
+		if(len == 126) {
+		  len = nextByte();
+		  len <<= 8;
+		  len += nextByte();
+		} else if (len == 127) {
+		  len = nextByte();
+		  for(int i = 0; i < 7; i++) { // NOTE: This may not be correct.  RFC 6455 defines network byte order(??). (section 5.2)
+			len <<= 8;
+			len += nextByte();
+		  }
+		}
+		#ifdef STEPBYSTEP
+			delay(300);
+		#endif
+		#ifdef TRACE			
+		Serial.print("hdr = ");
+		Serial.println(hdr);
+		Serial.print("len = ");
+		Serial.println(len);
+		Serial.print("mask = ");
+		Serial.println(mask);
+		#endif
+
+		if(mask) { // skipping 4 bytes for now.
+		  uint8_t temp[4];
+		  nextBytes(temp, 4);
+		  free(temp);
+		}
+
+		if(mask) {
+
+			#ifdef DEBUGGING
+			Serial.println("Masking not yet supported (RFC 6455 section 5.3)");
+			#endif
+			/*
+				  if(_onError != NULL) {
+					_onError(*this, "Masking not supported");
+				  }*/
+		  free(_packet);
+		  return;
+		}
+
+		if(!fin) {
+			#ifdef TRACE
+			Serial.println("not fin");
+			#endif
+			#ifdef STEPBYSTEP
+				delay(300);
+			#endif
+		  if(_packet == NULL) {
+			_packet = (char*) malloc(len);
+			nextBytes((uint8_t*)_packet, len);
+			#ifdef TRACE
+			Serial.println("not fin, packet null, created");
+			#endif
+			#ifdef STEPBYSTEP
+				delay(300);
+			#endif
+			_packetLength = len;
+			_opCode = opCode;
+		  } else {
+			#ifdef TRACE
+			Serial.println("not fin, packet copying, before");
+			#endif
+			#ifdef STEPBYSTEP
+				delay(300);
+			#endif
+			int copyLen = _packetLength;
+			_packetLength += len;
+			char *temp = _packet;
+			_packet = (char*)malloc(_packetLength);
+			#ifdef TRACE
+			Serial.println("not fin, packet copying, allocated");
+			#endif
+			#ifdef STEPBYSTEP
+				delay(300);
+			#endif
+			memcpy(_packet, temp, copyLen);
+			#ifdef TRACE
+			Serial.println("not fin, packet copying, memcpy");
+			#endif
+			#ifdef STEPBYSTEP
+				delay(300);
+			#endif
+			_total =  _client.available();
+			_buffer = (uint8_t*) calloc (_total,sizeof(uint8_t));
+			_total = _client.read(_buffer, _total);
+			_offset = 0;
+			#ifdef TRACE
+			Serial.println("reallocated buffer, copied, reading");
+			#endif
+			#ifdef STEPBYSTEP
+				delay(300);
+			#endif
+			nextBytes((uint8_t*)_packet+copyLen, len);
+			#ifdef TRACE
+			Serial.println("not fin, packet copying, nextbytes");
+			#endif
+			#ifdef STEPBYSTEP
+				delay(300);
+			#endif
+			free(temp);
+		  }
+ 			return;
+
+		}
+		#ifdef TRACE
+		Serial.print("packetlen = ");
+		Serial.println(_packetLength);
+		#endif
+		#ifdef STEPBYSTEP
+			delay(300);
+		#endif
 
     if(_packet == NULL) {
-      _packet = (char*) malloc(len + 1);
+		_packet = (char*) malloc(len + 1);
 
-#ifdef TRACE
-Serial.print("len5 = ");
-Serial.println(len);
-#endif
-/*
-      for(int i = 0; i < len; i++) {
-        _packet[i] = nextByte();
-      }
-*/
-		uint8_t temppack[len];
-		_client.read(temppack, len);
-
-      for(int i = 0; i < len; i++) {
-        _packet[i] = (char)temppack[i];
-      }
-
+		#ifdef TRACE
+		Serial.print("len5 = ");
+		Serial.println(len);
+		#endif
+		#ifdef STEPBYSTEP
+			delay(300);
+		#endif
+		nextBytes((uint8_t*)_packet, len);
 	
-#ifdef TRACE
-Serial.print("packetlen3 = ");
-Serial.println(_packetLength);
-#endif
-
-      _packet[len] = 0x0;
+		#ifdef TRACE
+		Serial.print("packetlen3 = ");
+		Serial.println(_packetLength);
+		#endif
+		#ifdef STEPBYSTEP
+			delay(300);
+		#endif
+		_packet[len] = 0x0;
     } else {
-      int copyLen = _packetLength;
-      _packetLength += len;
-      char *temp = _packet;
-      _packet = (char*) malloc(_packetLength + 1);
+		int copyLen = _packetLength;
+		_packetLength += len;
+		char *temp = _packet;
+		_packet = (char*) malloc(_packetLength + 1);
 
-#ifdef TRACE
-Serial.print("packetlen4 = ");
-Serial.println(_packetLength);
-#endif
-
-
-      for(int i = 0; i < _packetLength; i++) {
-        if(i < copyLen) {
-          _packet[i] = temp[i];
-        } else {
-          _packet[i] = nextByte();
-        }
-      }
+		#ifdef TRACE
+		Serial.print("packetlen4 = ");
+		Serial.println(_packetLength);
+		#endif
+		#ifdef STEPBYSTEP
+			delay(300);
+		#endif
+		memcpy(_packet, temp, copyLen);
+		nextBytes((uint8_t*)_packet[copyLen], len);
       _packet[_packetLength] = 0x0;
       free(temp);
     }
@@ -314,7 +397,9 @@ Serial.println(_packetLength);
 Serial.print("packetlen2 = ");
 Serial.println(_packetLength);
 #endif
-
+		#ifdef STEPBYSTEP
+			delay(300);
+		#endif
     if(opCode == 0 && _opCode > 0) {
       opCode = _opCode;
       _opCode = 0;
@@ -334,10 +419,13 @@ Serial.println(_packetLength);
 #ifdef DEBUGGING
 	Serial.print("onMessage: data = ");
 	Serial.println(_packet);
+	//Serial.println();
+	
 #endif
 
-        if (_onMessage != NULL) {
-          _onMessage(*this, _packet);
+        if (_onMessage != NULL ) {
+			_onMessage(*this, _packet);
+			//_client.flush();
         }
         break;
 
@@ -390,6 +478,7 @@ Serial.println("Binary messages not yet supported (RFC 6455 section 5.6)");
 
     free(_packet);
     _packet = NULL;
+
   }
 }
 
@@ -431,8 +520,6 @@ bool WebSocketClient::readHandshake() {
   bool result = true;
   char line[128];
   int maxAttempts = 300, attempts = 0;
-  //char response;
-  //response = reinterpret_cast<char>(WebSocketClientStringTable[9]);
 
   while(_client.available() == 0 && attempts < maxAttempts)
   {
