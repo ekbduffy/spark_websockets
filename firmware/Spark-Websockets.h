@@ -56,16 +56,14 @@ public:
   bool send(char* message);
 private:
 String WebSocketClientStringTable = {
-			"GET / HTTP/1.1\x0d\x0a"//, //"GET {0} HTTP/1.1",
-			"Upgrade: websocket\x0d\x0a"//,
-			"Connection: Upgrade\x0d\x0a"//,
-			"Host: {0}:{1}\x0d\x0a"//,//"Host: {0}",
-			"Origin: SparkWebSocketClient\x0d\x0a"//,
-			"Sec-WebSocket-Key:  1VTFj/CydlBCZDucDqw8eA==\x0d\x0a"//,
-			"Sec-WebSocket-Version: 13\x0d\x0a"//,
-//			"HTTP/1.1 101\x0d\x0a"
+			"GET / HTTP/1.1\x0d\x0a"
+			"Upgrade: websocket\x0d\x0a"
+			"Connection: Upgrade\x0d\x0a"
+			"Host: {0}:{1}\x0d\x0a"
+			"Origin: SparkWebSocketClient\x0d\x0a"
+			"Sec-WebSocket-Key:  1VTFj/CydlBCZDucDqw8eA==\x0d\x0a"
+			"Sec-WebSocket-Version: 13\x0d\x0a"
 			"\x0d\x0a"};
-
   const char* _hostname;
   const byte* _host;
   int _port;
@@ -76,12 +74,16 @@ String WebSocketClientStringTable = {
   unsigned long _retryTimeout;
   void reconnect();
   void sendHandshake(const char* hostname, const char* path, const char* protocol);
+  virtual int nextBytes(uint8_t *buffer, size_t size);
   TCPClient _client;
   OnOpen _onOpen;
   OnClose _onClose;
   OnMessage _onMessage;
   OnError _onError;
   char* _packet;
+  uint8_t* _buffer;
+  uint16_t _offset;
+  uint16_t _total;
   unsigned int _packetLength;
   byte _opCode;
   bool readHandshake();
