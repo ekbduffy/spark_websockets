@@ -91,6 +91,7 @@ void WebSocketClient::connect(const char hostname[], int port, const char protoc
   _path = path;
   _retryTimeout = millis();
   _canConnect = true;
+  _num = 0;
 }
 
 
@@ -204,6 +205,12 @@ void WebSocketClient::monitor () {
 
 	if (_client.available() > 2) {
 		//__disable_irq();
+		_num++;
+		#ifdef TRACE
+		Serial.print("+++NUM = ");
+		Serial.println(_num);
+		#endif
+
 		_total =  _client.available();		
 		_buffer = (uint8_t*) malloc(_total+1);//,sizeof(uint8_t));
 		_total = _client.read(_buffer, _total);
@@ -476,9 +483,8 @@ void WebSocketClient::monitor () {
         break;
     }
 
-    //free();
-    //free();
-	_buffer = NULL;
+	free(_buffer);
+	free(_packet);
 	_packet = NULL;
 	_client.flush();
   }
