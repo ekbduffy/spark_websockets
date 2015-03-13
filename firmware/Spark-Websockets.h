@@ -91,6 +91,7 @@ String WebSocketClientStringTable = {
   void generateHash(char* buffer, size_t bufferlen);
   size_t base64Encode(byte* src, size_t srclength, char* target, size_t targetsize);
   byte nextByte();
+  uint8_t _num;
   
   
 };
