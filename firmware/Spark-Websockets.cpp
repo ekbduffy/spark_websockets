@@ -525,7 +525,7 @@ bool WebSocketClient::readHandshake() {
 	#ifdef HANDSHAKE
 		  Serial.println("Reading handshake!");
 	#endif
-	bool result = true;
+	bool result = false;
 	char line[128];
 	int maxAttempts = 300, attempts = 0;
 
