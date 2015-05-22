@@ -510,9 +510,11 @@ void WebSocketClient::onError(OnError fn) {
 void WebSocketClient::sendHandshake(const char* hostname, const char* path, const char* protocol) {
   Serial.println("Sending handshake!");
 
-	WebSocketClientStringTable.replace("{0}", hostname);
+	WebSocketClientStringTable.replace("{0}", path);
+
+	WebSocketClientStringTable.replace("{1}", hostname);
 	String strport = String(_port);
-	WebSocketClientStringTable.replace("{1}", strport);
+	WebSocketClientStringTable.replace("{2}", strport);
 
 	_client.print(WebSocketClientStringTable);
 	#ifdef HANDSHAKE
