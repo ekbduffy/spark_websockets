@@ -41,7 +41,8 @@
 
 class WebSocketClient {
 public:
-  typedef void (*OnMessage)(WebSocketClient client, char* message);
+//  typedef void (*OnMessage)(WebSocketClient client, char* message);
+  typedef void (*OnMessage)(char* message);
   typedef void (*OnOpen)(WebSocketClient client);
   typedef void (*OnClose)(WebSocketClient client, int code, char* message);
   typedef void (*OnError)(WebSocketClient client, char* message);

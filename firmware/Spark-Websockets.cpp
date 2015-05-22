@@ -434,7 +434,8 @@ void WebSocketClient::monitor () {
 		#endif
 
         if (_onMessage != NULL ) {
-			_onMessage(*this, _packet);
+//			_onMessage(*this, _packet);
+			_onMessage(_packet);
         }
         break;
 
