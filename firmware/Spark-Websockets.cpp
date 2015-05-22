@@ -508,10 +508,9 @@ void WebSocketClient::onError(OnError fn) {
 
 
 void WebSocketClient::sendHandshake(const char* hostname, const char* path, const char* protocol) {
-  Serial.println("Sending handshake!");
+  Serial.println("Sending handshake with !");
 
 	WebSocketClientStringTable.replace("{0}", path);
-
 	WebSocketClientStringTable.replace("{1}", hostname);
 	String strport = String(_port);
 	WebSocketClientStringTable.replace("{2}", strport);
@@ -547,9 +546,9 @@ bool WebSocketClient::readHandshake() {
 		if(strcmp(line, "") == 0) {
 		  break;
 		}
-		if(strncmp(line, "1VTFj/CydlBCZDucDqw8eA==", 12) == 0) {
+		//if(strncmp(line, "1VTFj/CydlBCZDucDqw8eA==", 12) == 0) {
 		  result = true;
-		}
+		//}
 	}
 
 	if(!result) {
