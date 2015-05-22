@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include "spark_wiring_tcpclient.h"
 #include "spark_wiring_string.h"
-#include "websocketclient.h"
+
 //#include "Arduino.h"
 
 class WebSocketClient {
