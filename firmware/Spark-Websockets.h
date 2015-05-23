@@ -43,9 +43,9 @@ class WebSocketClient {
 public:
 //  typedef void (*OnMessage)(WebSocketClient client, char* message);
   typedef void (*OnMessage)(char* message);
-  typedef void (*OnOpen)(WebSocketClient client);
-  typedef void (*OnClose)(WebSocketClient client, int code, char* message);
-  typedef void (*OnError)(WebSocketClient client, char* message);
+  typedef void (*OnOpen)();
+  typedef void (*OnClose)(int code, char* message);
+  typedef void (*OnError)(char* message);
   void connect(const char hostname[], int port = 80, const char protocol[] = NULL, const char path[] = "/");
   void connect(const byte host[], int port = 80, const char protocol[] = NULL, const char path[] = "/");
   bool connected();

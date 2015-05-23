@@ -128,12 +128,12 @@ void WebSocketClient::reconnect() {
 		Serial.println("Connection Failed!");
 	#endif
     if(_onError != NULL) {
-      _onError(*this, "Connection Failed!");
+      _onError("Connection Failed!");
     }
     _client.stop();
   } else {
       if(_onOpen != NULL) {
-          _onOpen(*this);
+          _onOpen();
       }
   }
 }
@@ -478,7 +478,7 @@ void WebSocketClient::monitor () {
 		#endif
 
         if(_onClose != NULL) {
-          _onClose(*this, code, (_packet + 2));
+          _onClose(code, (_packet + 2));
         }
         _client.stop();
         break;
