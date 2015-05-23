@@ -446,7 +446,7 @@ void WebSocketClient::monitor () {
 		#endif
 
         if(_onError != NULL) {
-          _onError(*this, "Binary Messages not supported");
+          _onError("Binary Messages not supported");
         }
         break;
 
