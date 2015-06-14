@@ -108,7 +108,7 @@ void WebSocketClient::reconnect() {
 	if (count == 3)
 	{
 		byte ip[4];
-		sscanf(_hostname, "%hu.%hu.%hu.%hu", &ip[0], &ip[1], &ip[2], &ip[3]);
+		sscanf(_hostname, "%hhu.%hhu.%hhu.%hhu", &ip[0], &ip[1], &ip[2], &ip[3]);
 		isconnected = _client.connect(ip, _port);
 	}
 	else
@@ -117,9 +117,9 @@ void WebSocketClient::reconnect() {
 	}
 	if(isconnected)
 	{
-			#ifdef DEBUGGING
-				Serial.println("Connected, sending handshake.");
-			#endif
+		#ifdef DEBUGGING
+			Serial.println("Connected, sending handshake.");
+		#endif
 		sendHandshake(_hostname, _path, _protocol);
 		result = readHandshake();
 	}
@@ -128,12 +128,12 @@ void WebSocketClient::reconnect() {
 		Serial.println("Connection Failed!");
 	#endif
     if(_onError != NULL) {
-      _onError("Connection Failed!");
+      _onError(*this, const_cast<char *>("Connection Failed!"));
     }
     _client.stop();
   } else {
       if(_onOpen != NULL) {
-          _onOpen();
+          _onOpen(*this);
       }
   }
 }
@@ -434,8 +434,7 @@ void WebSocketClient::monitor () {
 		#endif
 
         if (_onMessage != NULL ) {
-//			_onMessage(*this, _packet);
-			_onMessage(_packet);
+			_onMessage(*this, _packet);
         }
         break;
 
@@ -446,7 +445,7 @@ void WebSocketClient::monitor () {
 		#endif
 
         if(_onError != NULL) {
-          _onError("Binary Messages not supported");
+          _onError(*this, const_cast<char *>("Binary Messages not supported"));
         }
         break;
 
@@ -478,7 +477,7 @@ void WebSocketClient::monitor () {
 		#endif
 
         if(_onClose != NULL) {
-          _onClose(code, (_packet + 2));
+          _onClose(*this, code, (_packet + 2));
         }
         _client.stop();
         break;
@@ -509,12 +508,11 @@ void WebSocketClient::onError(OnError fn) {
 
 
 void WebSocketClient::sendHandshake(const char* hostname, const char* path, const char* protocol) {
-  Serial.println("Sending handshake with !");
+  Serial.println("Sending handshake!");
 
-	WebSocketClientStringTable.replace("{0}", path);
-	WebSocketClientStringTable.replace("{1}", hostname);
+	WebSocketClientStringTable.replace("{0}", hostname);
 	String strport = String(_port);
-	WebSocketClientStringTable.replace("{2}", strport);
+	WebSocketClientStringTable.replace("{1}", strport);
 
 	_client.print(WebSocketClientStringTable);
 	#ifdef HANDSHAKE
@@ -547,9 +545,9 @@ bool WebSocketClient::readHandshake() {
 		if(strcmp(line, "") == 0) {
 		  break;
 		}
-		//if(strncmp(line, "1VTFj/CydlBCZDucDqw8eA==", 12) == 0) {
+		if(strncmp(line, "1VTFj/CydlBCZDucDqw8eA==", 12) == 0) {
 		  result = true;
-		//}
+		}
 	}
 
 	if(!result) {
@@ -605,8 +603,8 @@ bool WebSocketClient::send (char* message) {
 size_t WebSocketClient::base64Encode(byte* src, size_t srclength, char* target, size_t targsize) {
 
   size_t datalength = 0;
-	char input[3];
-	char output[4];
+	unsigned char input[3];
+	unsigned char output[4];
 	size_t i;
 
 	while (2 < srclength) {

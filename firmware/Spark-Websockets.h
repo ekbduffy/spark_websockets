@@ -36,16 +36,14 @@
 #include <stdlib.h>
 #include "spark_wiring_tcpclient.h"
 #include "spark_wiring_string.h"
-
 //#include "Arduino.h"
 
 class WebSocketClient {
 public:
-//  typedef void (*OnMessage)(WebSocketClient client, char* message);
-  typedef void (*OnMessage)(char* message);
-  typedef void (*OnOpen)();
-  typedef void (*OnClose)(int code, char* message);
-  typedef void (*OnError)(char* message);
+  typedef int (*OnMessage)(WebSocketClient client, char* message);
+  typedef void (*OnOpen)(WebSocketClient client);
+  typedef void (*OnClose)(WebSocketClient client, int code, char* message);
+  typedef void (*OnError)(WebSocketClient client, char* message);
   void connect(const char hostname[], int port = 80, const char protocol[] = NULL, const char path[] = "/");
   void connect(const byte host[], int port = 80, const char protocol[] = NULL, const char path[] = "/");
   bool connected();
@@ -58,10 +56,10 @@ public:
   bool send(char* message);
 private:
 String WebSocketClientStringTable = {
-			"GET {0} HTTP/1.1\x0d\x0a"
+			"GET / HTTP/1.1\x0d\x0a"
 			"Upgrade: websocket\x0d\x0a"
 			"Connection: Upgrade\x0d\x0a"
-			"Host: {1}:{2}\x0d\x0a"
+			"Host: {0}:{1}\x0d\x0a"
 			"Origin: SparkWebSocketClient\x0d\x0a"
 			"Sec-WebSocket-Key:  1VTFj/CydlBCZDucDqw8eA==\x0d\x0a"
 			"Sec-WebSocket-Version: 13\x0d\x0a"
