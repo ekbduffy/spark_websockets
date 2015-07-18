@@ -27,6 +27,8 @@
 #ifndef WEBSOCKETCLIENT_H
 #define WEBSOCKETCLIENT_H
 
+#define byte uint8_t
+
 //#define HANDSHAKE // uncomment to print out the sent and received handshake messages
 //#define TRACE // uncomment to support TRACE level debugging of wire protocol
 //#define DEBUG // turn on debugging
