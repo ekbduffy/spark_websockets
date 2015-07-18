@@ -68,6 +68,7 @@
 
 #include "spark_wiring_usbserial.h"
 #include "spark_wiring_string.h"
+#include "application.h"
 
 #include "Spark-Websockets.h"
 #include <stdlib.h>
@@ -604,7 +605,7 @@ size_t WebSocketClient::base64Encode(byte* src, size_t srclength, char* target, 
 
   size_t datalength = 0;
 	unsigned char input[3];unsigned
-	unsigned char output[4];
+	char output[4];
 	size_t i;
 
 	while (2 < srclength) {
