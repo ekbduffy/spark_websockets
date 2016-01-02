@@ -109,7 +109,7 @@ void WebSocketClient::reconnect() {
 	if (count == 3)
 	{
 		byte ip[4];
-		sscanf(_hostname, "%hhu.%hhu.%hhu.%hhu", &ip[0], &ip[1], &ip[2], &ip[3]);
+		sscanf(_hostname, "%hu.%hu.%hu.%hu", &ip[0], &ip[1], &ip[2], &ip[3]);
 		isconnected = _client.connect(ip, _port);
 	}
 	else
