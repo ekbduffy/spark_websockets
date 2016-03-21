@@ -514,6 +514,7 @@ void WebSocketClient::sendHandshake(const char* hostname, const char* path, cons
 	WebSocketClientStringTable.replace("{0}", hostname);
 	String strport = String(_port);
 	WebSocketClientStringTable.replace("{1}", strport);
+	WebSocketClientStringTable.replace("{2}", path);
 
 	_client.print(WebSocketClientStringTable);
 	#ifdef HANDSHAKE
