@@ -58,7 +58,7 @@ public:
   bool send(char* message);
 private:
 String WebSocketClientStringTable = {
-			"GET / HTTP/1.1\x0d\x0a"
+			"GET {2} HTTP/1.1\x0d\x0a"
 			"Upgrade: websocket\x0d\x0a"
 			"Connection: Upgrade\x0d\x0a"
 			"Host: {0}:{1}\x0d\x0a"
